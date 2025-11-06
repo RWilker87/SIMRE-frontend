@@ -1,0 +1,97 @@
+.container {
+  max-width: 900px; /* Mesma largura do header */
+  margin: 20px auto; /* Centraliza */
+  border-top: 2px solid #555;
+  padding-top: 20px;
+  text-align: left; /* Alinha o texto do container à esquerda */
+}
+
+.container h3,
+.container h4 {
+  text-align: center; /* Centraliza apenas os títulos */
+}
+
+.form {
+  margin: 20px auto; /* Centraliza o formulário */
+  border: 1px solid #555;
+  padding: 24px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 500px; /* Define uma largura máxima para o form */
+  background-color: #2a2a2a;
+}
+
+.input {
+  padding: 12px;
+  border-radius: 4px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
+  font-size: 16px;
+}
+
+.input:focus {
+  border-color: #646cff;
+  outline: none;
+}
+
+.addButton {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+
+.addButton:hover {
+  background-color: #0056b3;
+}
+
+.addButton:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.list {
+  list-style: none;
+  padding-left: 0;
+  max-width: 700px; /* Limita a largura da lista */
+  margin: 20px auto; /* Centraliza a lista */
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #444;
+}
+
+.listItem span {
+  font-size: 1.1em;
+}
+
+.deleteButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: #c82333;
+}
+
+.deleteButton:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}

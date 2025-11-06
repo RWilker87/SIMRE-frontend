@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+// 1. Importa o CSS Module
 import styles from "./GerenciarEscolas.module.css";
 
 export default function GerenciarEscolas() {
@@ -11,7 +12,6 @@ export default function GerenciarEscolas() {
   const [emailEscola, setEmailEscola] = useState("");
   const [senhaEscola, setSenhaEscola] = useState("");
 
-  // 1. Buscar as escolas já cadastradas (isto deve funcionar agora)
   const fetchEscolas = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -22,7 +22,6 @@ export default function GerenciarEscolas() {
     if (!error) {
       setEscolas(data);
     } else {
-      // O erro 'tabela não existe' não deve mais aparecer
       alert("Erro ao buscar escolas: " + error.message);
     }
     setLoading(false);
@@ -30,9 +29,8 @@ export default function GerenciarEscolas() {
 
   useEffect(() => {
     fetchEscolas();
-  }, []); // O [] vazio faz rodar só uma vez
+  }, []);
 
-  // 2. Função para ADICIONAR uma nova escola (usando a Função SQL)
   const handleAddEscola = async (e) => {
     e.preventDefault();
     if (!nomeEscola || !emailEscola || !senhaEscola) {
@@ -42,36 +40,41 @@ export default function GerenciarEscolas() {
 
     try {
       setLoading(true);
-      // Chama a função 'criar_escola_com_usuario' que criamos no SQL Editor
-      const { data, error } = await supabase.rpc("criar_escola_com_usuario", {
-        _nome_escola: nomeEscola,
-        _email: emailEscola,
-        _password: senhaEscola,
-        // _codigo_inep: '12345' // (Opcional) Você pode adicionar um campo para isso
+
+      // 1️⃣ Cria o usuário no Supabase Auth
+      const { data: userData, error: signUpError } =
+        await supabase.auth.admin.createUser({
+          email: emailEscola,
+          password: senhaEscola,
+          email_confirm: true, // pula verificação de e-mail
+          user_metadata: { tipo: "escola" },
+        });
+
+      if (signUpError) throw signUpError;
+
+      const newUserId = userData.user.id;
+
+      // 2️⃣ Cria a escola vinculada a esse usuário
+      const { error: insertError } = await supabase.from("escolas").insert({
+        nome_escola: nomeEscola,
+        user_id: newUserId,
       });
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       alert("Escola e usuário criados com sucesso!");
-
-      // Limpa os campos
       setNomeEscola("");
       setEmailEscola("");
       setSenhaEscola("");
-
-      // Recarrega a lista de escolas
       fetchEscolas();
     } catch (error) {
-      alert(error.message);
+      alert("Erro: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Função para DELETAR uma escola (ainda funciona)
   const handleDeleteEscola = async (escolaId) => {
-    // (Aviso: Isto só deleta a escola, não o usuário de login.
-    //  Uma função de 'deletar_escola_completa' seria necessária no futuro)
     if (!window.confirm("Tem certeza que deseja deletar esta escola?")) {
       return;
     }
@@ -92,55 +95,50 @@ export default function GerenciarEscolas() {
   };
 
   return (
-    <div
-      style={{
-        marginTop: "20px",
-        borderTop: "2px solid #eee",
-        paddingTop: "20px",
-      }}
-    >
+    // 2. Usa 'className' para o container (não mais 'style')
+    <div className={styles.container}>
       <h3>Gerenciamento de Unidades Escolares</h3>
 
-      {/* Formulário para adicionar nova escola */}
-      <form onSubmit={handleAddEscola} style={styles.form}>
+      {/* 3. Usa 'className' para o formulário e inputs */}
+      <form onSubmit={handleAddEscola} className={styles.form}>
         <h4>Cadastrar Nova Escola (e seu Login)</h4>
         <input
           type="text"
           placeholder="Nome da nova escola"
           value={nomeEscola}
           onChange={(e) => setNomeEscola(e.target.value)}
-          style={styles.input}
+          className={styles.input}
         />
         <input
           type="email"
           placeholder="Email de login da escola"
           value={emailEscola}
           onChange={(e) => setEmailEscola(e.target.value)}
-          style={styles.input}
+          className={styles.input}
         />
         <input
           type="password"
           placeholder="Senha de login da escola"
           value={senhaEscola}
           onChange={(e) => setSenhaEscola(e.target.value)}
-          style={styles.input}
+          className={styles.input}
         />
-        <button type="submit" disabled={loading} style={styles.addButton}>
+        <button type="submit" disabled={loading} className={styles.addButton}>
           {loading ? "Salvando..." : "Criar Escola e Login"}
         </button>
       </form>
 
-      {/* Lista de escolas cadastradas */}
+      {/* 4. Usa 'className' para a lista */}
       <h4>Escolas Cadastradas:</h4>
       {loading && <p>Carregando lista...</p>}
-      <ul style={styles.list}>
+      <ul className={styles.list}>
         {escolas.length > 0
           ? escolas.map((escola) => (
-              <li key={escola.id} style={styles.listItem}>
+              <li key={escola.id} className={styles.listItem}>
                 <span>{escola.nome_escola}</span>
                 <button
                   onClick={() => handleDeleteEscola(escola.id)}
-                  style={styles.deleteButton}
+                  className={styles.deleteButton}
                   disabled={loading}
                 >
                   Deletar
