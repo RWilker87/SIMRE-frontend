@@ -1,0 +1,51 @@
+/* Este é um novo arquivo: src/components/Dashboard.module.css */
+
+.container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.debugInfo {
+  color: #f0e68c; /* Amarelo cáqui */
+  font-weight: bold;
+  background-color: #333;
+  padding: 8px;
+  border-radius: 4px;
+  display: inline-block; /* Para não ocupar a largura toda */
+}
+
+.panel {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 8px;
+}
+
+.logoutButton {
+  margin-top: 20px;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: #5a6268;
+}
+
+.logoutButton:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}

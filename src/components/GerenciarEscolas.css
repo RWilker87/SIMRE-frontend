@@ -1,0 +1,80 @@
+/* Este é um novo arquivo: src/components/GerenciarEscolas.module.css */
+
+.container {
+  margin-top: 20px;
+  border-top: 2px solid #555; /* Um pouco mais escuro para o tema */
+  padding-top: 20px;
+}
+
+.list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid #444;
+}
+
+.deleteButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: #c82333;
+}
+
+.deleteButton:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.form {
+  margin: 20px 0;
+  border: 1px solid #555;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+  background-color: #2a2a2a;
+}
+
+.input {
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
+  font-size: 16px;
+}
+
+.addButton {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover {
+  background-color: #0056b3;
+}
+
+.addButton:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
