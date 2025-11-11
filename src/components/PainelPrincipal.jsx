@@ -1,4 +1,4 @@
-// src/components/PainelPrincipal.jsx (Atualizado com dados reais)
+// src/components/PainelPrincipal.jsx (Atualizado com mais KPIs)
 
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
@@ -7,8 +7,12 @@ import styles from "./PainelPrincipal.module.css";
 export default function PainelPrincipal() {
   const [loading, setLoading] = useState(true);
   const [totalEscolas, setTotalEscolas] = useState(0);
-  const [totalResultados, setTotalResultados] = useState(0); // NOVO ESTADO
-  const [atividadesRecentes, setAtividadesRecentes] = useState([]); // Vai guardar escolas E resultados
+  const [totalResultados, setTotalResultados] = useState(0);
+  const [atividadesRecentes, setAtividadesRecentes] = useState([]);
+
+  // --- NOVOS ESTADOS PARA KPIs ---
+  const [mediaAnoAtual, setMediaAnoAtual] = useState(0);
+  const [crescimento, setCrescimento] = useState(0);
 
   // Função para formatar o tempo (ex: "Há 2 horas")
   function formatTempo(timestamp) {
@@ -39,14 +43,9 @@ export default function PainelPrincipal() {
 
       if (!countError && countEscolas !== null) {
         setTotalEscolas(countEscolas);
-      } else {
-        console.error(
-          "Erro ao buscar contagem de escolas:",
-          countError?.message
-        );
       }
 
-      // Últimas 5 escolas
+      // Últimas 5 escolas (para atividades)
       const { data: escolasData, error: escolasError } = await supabase
         .from("escolas")
         .select("nome_escola, created_at")
@@ -54,31 +53,54 @@ export default function PainelPrincipal() {
         .limit(5);
 
       // --- 2. BUSCAR DADOS DOS RESULTADOS ---
-      // Contagem total
-      const { count: countResultados, error: countResultadosError } =
-        await supabase
-          .from("resultados")
-          .select("*", { count: "exact", head: true });
+      // Busca TODOS os resultados para calcular médias
+      const { data: todosResultados, error: todosResultadosError } =
+        await supabase.from("resultados").select("ano, valor_indice");
 
-      if (!countResultadosError && countResultados !== null) {
-        setTotalResultados(countResultados);
-      } else {
-        console.error(
-          "Erro ao buscar contagem de resultados:",
-          countResultadosError?.message
+      if (!todosResultadosError && todosResultados) {
+        setTotalResultados(todosResultados.length);
+
+        // --- CÁLCULO DAS NOVAS KPIs ---
+        const anoAtual = new Date().getFullYear();
+        const anoAnterior = anoAtual - 1;
+
+        const resultadosAnoAtual = todosResultados.filter(
+          (r) => r.ano === anoAtual
         );
+        const resultadosAnoAnterior = todosResultados.filter(
+          (r) => r.ano === anoAnterior
+        );
+
+        const calcularMedia = (arr) => {
+          if (arr.length === 0) return 0;
+          const soma = arr.reduce(
+            (acc, val) => acc + (val.valor_indice || 0),
+            0
+          );
+          return soma / arr.length;
+        };
+
+        const mediaAtual = calcularMedia(resultadosAnoAtual);
+        const mediaAnterior = calcularMedia(resultadosAnoAnterior);
+
+        setMediaAnoAtual(mediaAtual);
+
+        if (mediaAnterior > 0 && mediaAtual > 0) {
+          const perc = ((mediaAtual - mediaAnterior) / mediaAnterior) * 100;
+          setCrescimento(perc);
+        }
       }
 
-      // Últimos 5 resultados (e o nome da escola relacionada)
-      const { data: resultadosData, error: resultadosError } = await supabase
-        .from("resultados")
-        .select("created_at, avaliacao, disciplina, escola_id(nome_escola)") // Busca o nome da escola
-        .order("created_at", { ascending: false })
-        .limit(5);
+      // Últimos 5 resultados (para atividades)
+      const { data: resultadosData, error: resultadosAtividadesError } =
+        await supabase
+          .from("resultados")
+          .select("created_at, avaliacao, disciplina, escola_id(nome_escola)")
+          .order("created_at", { ascending: false })
+          .limit(5);
 
-      // --- 3. JUNTAR, ORDENAR E MOSTRAR ATIVIDADES ---
+      // --- 3. JUNTAR E MOSTRAR ATIVIDADES ---
       let atividades = [];
-
       if (!escolasError && escolasData) {
         atividades = atividades.concat(
           escolasData.map((escola) => ({
@@ -89,22 +111,20 @@ export default function PainelPrincipal() {
           }))
         );
       }
-
-      if (!resultadosError && resultadosData) {
+      if (!resultadosAtividadesError && resultadosData) {
         atividades = atividades.concat(
           resultadosData.map((r) => ({
             tipo: "Novo Resultado",
             titulo: `${r.disciplina} - ${r.avaliacao}`,
-            subtitulo: r.escola_id?.nome_escola || "Escola não encontrada", // Mostra o nome da escola
+            subtitulo: r.escola_id?.nome_escola || "Escola não encontrada",
             data: r.created_at,
           }))
         );
       }
 
-      // Ordena a lista combinada pela data mais recente
       const atividadesOrdenadas = atividades
         .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-        .slice(0, 5); // Pega apenas as 5 mais recentes
+        .slice(0, 5);
 
       setAtividadesRecentes(atividadesOrdenadas);
       setLoading(false);
@@ -124,7 +144,8 @@ export default function PainelPrincipal() {
           <span className={styles.kpiValue}>
             {loading ? "..." : totalEscolas}
           </span>
-          <span className={styles.kpiLabel}>Total de Escolas</span>
+          {/* Corrigido para usar a classe Neutra */}
+          <span className={styles.kpiLabelNeutro}>Total de Escolas</span>
         </div>
 
         {/* Card 2: Total de Resultados */}
@@ -132,9 +153,35 @@ export default function PainelPrincipal() {
           <span className={styles.kpiValue}>
             {loading ? "..." : totalResultados}
           </span>
-          <span className={styles.kpiLabel}>Resultados Lançados</span>
+          <span className={styles.kpiLabelNeutro}>Resultados Lançados</span>
         </div>
-        {/* Você pode adicionar mais 2 cards aqui (ex: Média Geral) */}
+
+        {/* NOVO Card 3: Média Geral */}
+        <div className={styles.kpiCard}>
+          <span className={styles.kpiValue}>
+            {loading ? "..." : mediaAnoAtual.toFixed(2)}
+          </span>
+          <span className={styles.kpiLabelNeutro}>
+            Média Geral ({new Date().getFullYear()})
+          </span>
+        </div>
+
+        {/* NOVO Card 4: Crescimento */}
+        <div className={styles.kpiCard}>
+          <span className={styles.kpiValue}>
+            {loading ? "..." : `${crescimento.toFixed(1)}%`}
+          </span>
+          {/* Estilo condicional para cor */}
+          <span
+            className={
+              crescimento >= 0
+                ? styles.kpiLabelPositivo
+                : styles.kpiLabelNegativo
+            }
+          >
+            Crescimento (vs. Ano Anterior)
+          </span>
+        </div>
       </div>
 
       {/* Conteúdo Principal (AGORA COM DADOS REAIS) */}

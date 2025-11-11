@@ -8,6 +8,37 @@
   margin: 20px 0;
 }
 
+/* --- ESTILOS DE LABEL ATUALIZADOS --- */
+
+/* Label Neutra (Cinza) - Para contagens */
+.kpiLabelNeutro {
+  display: block;
+  font-size: 0.9em;
+  color: #555; /* Cor cinza */
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+/* Label Positiva (Verde) - Para crescimento */
+.kpiLabelPositivo {
+  display: block;
+  font-size: 0.9em;
+  color: #059669; /* Verde */
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+/* Label Negativa (Vermelho) - Para queda */
+.kpiLabelNegativo {
+  display: block;
+  font-size: 0.9em;
+  color: #dc2626; /* Vermelho */
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+/* --- FIM DOS ESTILOS DE LABEL --- */
+
 .kpiCard {
   background-color: #ffffff;
   padding: 24px;

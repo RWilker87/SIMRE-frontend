@@ -3,7 +3,6 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* MODIFICADO: Fundo claro */
   color: #213547;
   background-color: #ffffff;
 
@@ -22,11 +21,9 @@ a:hover {
   color: #535bf2;
 }
 
+/* body não tem mais display: flex, corrigindo o corte */
 body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #ffffff; /* Fundo branco */
+  background-color: #ffffff;
   color: #213547;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
@@ -43,7 +40,6 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  /* MODIFICADO: Cor de botão padrão */
   background-color: #f9f9f9;
   cursor: pointer;
   transition: border-color 0.25s;
@@ -55,10 +51,9 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+/* #root não tem mais display: flex, corrigindo o corte */
 #root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
   height: 100%;
 }
