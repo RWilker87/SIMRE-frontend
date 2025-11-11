@@ -1,9 +1,9 @@
-// src/components/DetalhesEscola.jsx (NOVO ARQUIVO)
+// src/components/DetalhesEscola.jsx (Corrigido com "disciplina")
 
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import styles from "./DetalhesEscola.module.css"; // Vamos criar este CSS
-import painelStyles from "./PainelPrincipal.module.css"; // Reutilizar o grid
+import styles from "./DetalhesEscola.module.css";
+import painelStyles from "./PainelPrincipal.module.css";
 
 export default function DetalhesEscola({ escola, onVoltar }) {
   const [resultados, setResultados] = useState([]);
@@ -11,9 +11,11 @@ export default function DetalhesEscola({ escola, onVoltar }) {
 
   // Estados do formulário de resultados
   const [avaliacao, setAvaliacao] = useState("");
-  const [ano, setAno] = useState(new Date().getFullYear()); // Padrão para o ano atual
+  const [ano, setAno] = useState(new Date().getFullYear());
   const [serie, setSerie] = useState("");
   const [valorIndice, setValorIndice] = useState("");
+  // --- 1. ADICIONAR ESTADO PARA DISCIPLINA ---
+  const [disciplina, setDisciplina] = useState("");
 
   // Função para buscar os resultados existentes
   async function fetchResultados() {
@@ -21,7 +23,7 @@ export default function DetalhesEscola({ escola, onVoltar }) {
     const { data, error } = await supabase
       .from("resultados")
       .select("*")
-      .eq("escola_id", escola.id) // Busca resultados SÓ desta escola
+      .eq("escola_id", escola.id)
       .order("created_at", { ascending: false });
 
     if (!error) {
@@ -35,23 +37,26 @@ export default function DetalhesEscola({ escola, onVoltar }) {
   // Busca os dados quando o componente é carregado
   useEffect(() => {
     fetchResultados();
-  }, [escola.id]); // O [escola.id] garante que a busca rode se a escola mudar
+  }, [escola.id]);
 
   // Função para adicionar um novo resultado
   const handleAddResultado = async (e) => {
     e.preventDefault();
-    if (!avaliacao || !ano || !serie || !valorIndice) {
+    // --- 2. ATUALIZAR VALIDAÇÃO ---
+    if (!avaliacao || !ano || !serie || !valorIndice || !disciplina) {
       alert("Por favor, preencha todos os campos do resultado.");
       return;
     }
 
     setLoading(true);
+    // --- 3. ATUALIZAR INSERT ---
     const { error } = await supabase.from("resultados").insert({
-      escola_id: escola.id, // Vincula o resultado à escola
+      escola_id: escola.id,
       avaliacao: avaliacao,
-      ano: parseInt(ano), // Garante que seja um número
+      ano: parseInt(ano),
       serie: serie,
-      valor_indice: parseFloat(valorIndice), // Garante que seja um float
+      valor_indice: parseFloat(valorIndice),
+      disciplina: disciplina, // <-- CAMPO ADICIONADO
     });
 
     if (error) {
@@ -63,6 +68,7 @@ export default function DetalhesEscola({ escola, onVoltar }) {
       setAno(new Date().getFullYear());
       setSerie("");
       setValorIndice("");
+      setDisciplina(""); // <-- 4. LIMPAR NOVO CAMPO
       // Atualiza a lista de resultados
       fetchResultados();
     }
@@ -89,6 +95,14 @@ export default function DetalhesEscola({ escola, onVoltar }) {
             placeholder="Nome da Avaliação (ex: SAEB, Prova Brasil)"
             value={avaliacao}
             onChange={(e) => setAvaliacao(e.target.value)}
+            className={styles.input}
+          />
+          {/* --- 5. ADICIONAR NOVO INPUT DE DISCIPLINA --- */}
+          <input
+            type="text"
+            placeholder="Disciplina (ex: Português, Matemática)"
+            value={disciplina}
+            onChange={(e) => setDisciplina(e.target.value)}
             className={styles.input}
           />
           <input
@@ -127,10 +141,16 @@ export default function DetalhesEscola({ escola, onVoltar }) {
               ? resultados.map((r) => (
                   <li key={r.id} className={styles.listItem}>
                     <span>
-                      <strong>{r.avaliacao}</strong> ({r.ano} - {r.serie})
+                      {/* --- 6. ATUALIZAR EXIBIÇÃO DA LISTA --- */}
+                      <strong>
+                        {r.disciplina} - {r.avaliacao}
+                      </strong>
+                      <small>
+                        {r.ano} - {r.serie}
+                      </small>
                     </span>
                     <span className={styles.indiceValor}>
-                      {r.valor_indice.toFixed(2)}
+                      {r.valor_indice ? r.valor_indice.toFixed(2) : "N/A"}
                     </span>
                   </li>
                 ))

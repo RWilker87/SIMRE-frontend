@@ -103,6 +103,12 @@
   margin-top: 2px;
 }
 
+.listaAtividades li .subtitulo {
+  font-size: 0.9em;
+  color: #777; /* Um pouco mais claro */
+  font-style: italic;
+}
+
 /* Lista do Gráfico de Barras */
 .listaGrafico {
   list-style: none;
