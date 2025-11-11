@@ -1,0 +1,140 @@
+/* src/components/DetalhesEscola.module.css (NOVO ARQUIVO) */
+
+.container {
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 2em;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 10px 0 0 0;
+}
+
+.header small {
+  font-size: 1em;
+  color: #777;
+  font-weight: 500;
+}
+
+.voltarButton {
+  background: none;
+  border: none;
+  color: #646cff;
+  font-weight: 600;
+  font-size: 0.9em;
+  padding: 0;
+  cursor: pointer;
+}
+.voltarButton:hover {
+  text-decoration: underline;
+}
+
+/* Reutilizar estilos dos cards */
+.cardForm,
+.cardList {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #e7e7e7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cardForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardList {
+  /* Garante que a lista possa crescer */
+  align-self: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cardForm h3,
+.cardList h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  color: #1a1a1a;
+  text-align: left;
+}
+
+/* Inputs e Botão (estilo claro) */
+.input {
+  width: 100%;
+  padding: 14px;
+  font-size: 1em;
+  background-color: #f6f6f6;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #333;
+}
+
+.input:focus {
+  border-color: #646cff;
+  outline: none;
+  background-color: #fff;
+}
+
+.addButton {
+  padding: 16px;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #646cff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover:not(:disabled) {
+  background-color: #535bf2;
+}
+
+.addButton:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/* Lista de Resultados */
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.listItem span {
+  font-size: 1em;
+  color: #333;
+}
+.listItem span strong {
+  display: block;
+  font-weight: 600;
+}
+
+.indiceValor {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #646cff;
+}
