@@ -1,16 +1,30 @@
 #root {
-  /*
-    Seu arquivo 'index.css' já usa 'display: flex' e 'place-items: center' no body.
-    As linhas abaixo (principalmente padding e margin) no #root
-    impedem que a centralização vertical funcione.
-  */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Centraliza em tela cheia */
+}
 
-  /* Modificado: */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Centraliza vertical e horizontalmente */
   width: 100%;
-  max-width: 1280px;
-  margin: 0; /* Alterado de '0 auto' */
-  padding: 0; /* Alterado de '2rem' */
+  height: 100%;
+  max-width: 400px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 40px 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  width: 100%;
   text-align: center;
+  border: 1px solid #eee;
 }
 
 /* O resto do seu App.css (logo, card, etc.) pode continuar igual */
