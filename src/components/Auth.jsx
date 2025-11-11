@@ -1,15 +1,16 @@
-// src/components/Auth.jsx (Atualizado)
+// src/components/Auth.jsx (Totalmente atualizado)
 
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import styles from "./Auth.module.css"; // Importa o CSS Module
+import logo from "../assets/logo.png"; // Importa a logo da pasta /public
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Apenas a função de Login
+  // A função de Login (continua a mesma)
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -19,7 +20,6 @@ export default function Auth() {
         password,
       });
       if (error) throw error;
-      // O App.jsx vai detectar o login e mudar a tela
     } catch (error) {
       alert(error.error_description || error.message);
     } finally {
@@ -28,29 +28,52 @@ export default function Auth() {
   };
 
   return (
+    // O body (em index.css) já centraliza este container
     <div className={styles.container}>
-      <h1>SIMRE - Login</h1>
-      <p>Sistema Municipal de Resultados Educacionais</p>
-      <form className={styles.form} onSubmit={handleLogin}>
-        <input
-          className={styles.input}
-          type="email"
-          placeholder="Seu email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className={styles.input}
-          type="password"
-          placeholder="Sua senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      {/* O card branco */}
+      <div className={styles.card}>
+        <img src={logo} alt="SIMRE Logo" className={styles.logo} />
+        <p className={styles.subtitle}>
+          Sistema Integrado de Monitoramento de Recursos
+        </p>
 
-        <button type="submit" disabled={loading} className={styles.button}>
-          {loading ? "Carregando..." : "Entrar"}
-        </button>
-      </form>
+        <form className={styles.form} onSubmit={handleLogin}>
+          {/* Campo de E-mail com Label */}
+          <div className={styles.inputGroup}>
+            <label htmlFor="email">E-mail</label>
+            <input
+              id="email"
+              className={styles.input}
+              type="email"
+              placeholder="seu.email@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          {/* Campo de Senha com Label */}
+          <div className={styles.inputGroup}>
+            <label htmlFor="password">Senha</label>
+            <input
+              id="password"
+              className={styles.input}
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button type="submit" disabled={loading} className={styles.button}>
+            {loading ? "Carregando..." : "Entrar"}
+          </button>
+        </form>
+      </div>
+
+      {/* Rodapé */}
+      <footer className={styles.footer}>
+        <p>© 2025 SIMRE. Todos os direitos reservados.</p>
+      </footer>
     </div>
   );
 }
