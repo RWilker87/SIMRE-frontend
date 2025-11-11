@@ -1,16 +1,15 @@
-// src/components/Auth.jsx (Totalmente atualizado)
+// src/components/Auth.jsx (Corrigido com notação de colchetes)
 
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
-import styles from "./Auth.module.css"; // Importa o CSS Module
-import logo from "../assets/logo.png"; // Importa a logo da pasta /public
+import styles from "./Auth.module.css";
+import logo from "../assets/logo.png";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // A função de Login (continua a mesma)
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -28,8 +27,8 @@ export default function Auth() {
   };
 
   return (
-    // O body (em index.css) já centraliza este container
-    <div className={styles.container}>
+    // CORREÇÃO: Usando colchetes para a classe com hífen
+    <div className={styles["auth-container"]}>
       {/* O card branco */}
       <div className={styles.card}>
         <img src={logo} alt="SIMRE Logo" className={styles.logo} />
