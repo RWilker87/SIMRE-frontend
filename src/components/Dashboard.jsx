@@ -1,24 +1,34 @@
-// src/components/Dashboard.jsx (Totalmente substituído)
+// src/components/Dashboard.jsx (Totalmente atualizado com permissões)
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Importa o useEffect
 import { supabase } from "../supabaseClient";
 import styles from "./Dashboard.module.css";
 import DetalhesEscola from "./DetalhesEscola.jsx";
 
-// Importa os ícones (simulados com texto por enquanto)
+// Importa os ícones
 const IconDashboard = () => <span>📊</span>;
 const IconEscolas = () => <span>🏫</span>;
-const IconAdicionar = () => <span>➕</span>;
 
 // Importa as "páginas"
 import GerenciarEscolas from "./GerenciarEscolas.jsx";
-import PainelPrincipal from "./PainelPrincipal.jsx"; // Vamos criar este
+import PainelPrincipal from "./PainelPrincipal.jsx";
+
+// UID do Administrador
+const ADMIN_USER_ID = "e55942f2-87c9-4811-9a0b-0841e8a39733";
 
 export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(false);
-  // Controla qual página está visível
   const [paginaAtiva, setPaginaAtiva] = useState("dashboard");
+
+  // --- Lógica de Permissão ---
+  const isAdmin = session.user.id === ADMIN_USER_ID;
+
+  // --- State do Admin ---
   const [escolaSelecionada, setEscolaSelecionada] = useState(null);
+
+  // --- State do Gestor ---
+  const [minhaEscola, setMinhaEscola] = useState(null);
+  const [loadingEscola, setLoadingEscola] = useState(!isAdmin); // Começa carregando se NÃO for admin
 
   const handleLogout = async () => {
     try {
@@ -32,13 +42,37 @@ export default function Dashboard({ session }) {
     }
   };
 
+  // Função para o Admin voltar da tela de Detalhes para a Lista
   const handleVoltarParaLista = () => {
     setEscolaSelecionada(null);
   };
 
+  // Busca a escola específica do GESTOR quando o componente carrega
+  useEffect(() => {
+    // Roda apenas se o usuário NÃO for admin
+    if (!isAdmin) {
+      async function fetchMinhaEscola() {
+        setLoadingEscola(true);
+        const { data, error } = await supabase
+          .from("escolas")
+          .select("*") // Pega todos os dados da escola
+          .eq("user_id", session.user.id) // Busca pela coluna que liga o usuário à escola
+          .single(); // Espera apenas um resultado
+
+        if (error) {
+          console.error("Erro ao buscar escola do gestor:", error.message);
+        } else if (data) {
+          setMinhaEscola(data);
+        }
+        setLoadingEscola(false);
+      }
+      fetchMinhaEscola();
+    }
+  }, [isAdmin, session.user.id]); // Dependências do hook
+
   const emailUsuario = session.user.email;
-  // Pega a pri meira letra do email para o Avatar
   const avatarSigla = emailUsuario ? emailUsuario[0].toUpperCase() : "?";
+  const nomePerfil = isAdmin ? "Administrador" : "Gestor Escolar";
 
   return (
     <div className={styles.layoutContainer}>
@@ -49,6 +83,7 @@ export default function Dashboard({ session }) {
             <span>S</span> SIMRE
           </div>
           <nav className={styles.nav}>
+            {/* Link comum para o Dashboard */}
             <a
               href="#"
               className={
@@ -58,30 +93,54 @@ export default function Dashboard({ session }) {
               }
               onClick={() => {
                 setPaginaAtiva("dashboard");
-                setEscolaSelecionada(null); // Limpa a seleção ao trocar de aba
+                if (isAdmin) setEscolaSelecionada(null);
               }}
             >
               <IconDashboard /> Dashboard
             </a>
-            <a
-              href="#"
-              className={
-                paginaAtiva === "escolas" ? styles.navItemAtivo : styles.navItem
-              }
-              onClick={() => {
-                setPaginaAtiva("escolas");
-                setEscolaSelecionada(null); // Limpa a seleção ao trocar de aba
-              }}
-            >
-              <IconEscolas /> Gerenciar Escolas
-            </a>
+
+            {/* Link exclusivo do ADMIN */}
+            {isAdmin && (
+              <a
+                href="#"
+                className={
+                  paginaAtiva === "escolas"
+                    ? styles.navItemAtivo
+                    : styles.navItem
+                }
+                onClick={() => {
+                  setPaginaAtiva("escolas");
+                  setEscolaSelecionada(null); // Limpa a seleção
+                }}
+              >
+                <IconEscolas /> Gerenciar Escolas
+              </a>
+            )}
+
+            {/* Link exclusivo do GESTOR */}
+            {!isAdmin && (
+              <a
+                href="#"
+                className={
+                  paginaAtiva === "minhaEscola"
+                    ? styles.navItemAtivo
+                    : styles.navItem
+                }
+                onClick={() => {
+                  setPaginaAtiva("minhaEscola");
+                }}
+              >
+                <IconEscolas /> Minha Escola
+              </a>
+            )}
           </nav>
         </div>
-        {/* ... (perfil sidebar continua igual) */}
+
+        {/* Perfil Sidebar Atualizado */}
         <div className={styles.perfilSidebar}>
           <div className={styles.avatar}>{avatarSigla}</div>
           <div className={styles.perfilInfo}>
-            <span className={styles.perfilNome}>Admin User</span>
+            <span className={styles.perfilNome}>{nomePerfil}</span>
             <span className={styles.perfilEmail}>{emailUsuario}</span>
           </div>
         </div>
@@ -89,12 +148,12 @@ export default function Dashboard({ session }) {
 
       {/* 2. Conteúdo Principal */}
       <div className={styles.mainContent}>
-        {/* ... (header continua igual) */}
+        {/* Header Atualizado */}
         <header className={styles.header}>
           <div />
           <div className={styles.menuUsuario}>
             <div className={styles.avatar}>{avatarSigla}</div>
-            <span>Admin User</span>
+            <span>{nomePerfil}</span>
             <button
               onClick={handleLogout}
               className={styles.logoutButton}
@@ -107,10 +166,11 @@ export default function Dashboard({ session }) {
 
         {/* 3. LÓGICA DE RENDERIZAÇÃO ATUALIZADA */}
         <main className={styles.pagina}>
+          {/* Rota comum para todos */}
           {paginaAtiva === "dashboard" && <PainelPrincipal />}
 
-          {/* Se a página ativa for "escolas" */}
-          {paginaAtiva === "escolas" && (
+          {/* Rotas exclusivas do ADMIN */}
+          {isAdmin && paginaAtiva === "escolas" && (
             <>
               {/* Mostra DETALHES se uma escola estiver selecionada */}
               {escolaSelecionada ? (
@@ -123,6 +183,33 @@ export default function Dashboard({ session }) {
                 <GerenciarEscolas
                   onSelecionarEscola={(escola) => setEscolaSelecionada(escola)}
                 />
+              )}
+            </>
+          )}
+
+          {/* Rota exclusiva do GESTOR */}
+          {!isAdmin && paginaAtiva === "minhaEscola" && (
+            <>
+              {loadingEscola && <p>Carregando dados da escola...</p>}
+
+              {/* Mostra os detalhes da escola do gestor */}
+              {minhaEscola && (
+                <DetalhesEscola
+                  escola={minhaEscola}
+                  // O botão "Voltar" levará o gestor de volta ao Dashboard
+                  onVoltar={() => setPaginaAtiva("dashboard")}
+                />
+              )}
+
+              {/* Caso de erro (usuário sem escola) */}
+              {!loadingEscola && !minhaEscola && (
+                <div>
+                  <h1>Erro</h1>
+                  <p>
+                    Nenhuma escola está associada à sua conta. Por favor,
+                    contate o administrador do sistema.
+                  </p>
+                </div>
               )}
             </>
           )}

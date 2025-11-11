@@ -1,11 +1,13 @@
-// src/components/DetalhesEscola.jsx (Corrigido com "disciplina")
+// src/components/DetalhesEscola.jsx
 
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import styles from "./DetalhesEscola.module.css";
-import painelStyles from "./PainelPrincipal.module.css";
+import { supabase } from "../supabaseClient.js";
+import styles from "../components/DetalhesEscola.module.css";
+import painelStyles from "../components/PainelPrincipal.module.css";
 
 export default function DetalhesEscola({ escola, onVoltar }) {
+  const [user, setUser] = useState(null);
+  const [canEdit, setCanEdit] = useState(false);
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,10 +16,30 @@ export default function DetalhesEscola({ escola, onVoltar }) {
   const [ano, setAno] = useState(new Date().getFullYear());
   const [serie, setSerie] = useState("");
   const [valorIndice, setValorIndice] = useState("");
-  // --- 1. ADICIONAR ESTADO PARA DISCIPLINA ---
   const [disciplina, setDisciplina] = useState("");
 
-  // Função para buscar os resultados existentes
+  // UID do admin (fixo)
+  const ADMIN_UID = "e55942f2-87c9-4811-9a0b-0841e8a39733";
+
+  // 🔐 Busca o usuário logado e define permissões
+  useEffect(() => {
+    async function getUser() {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Erro ao obter usuário:", error.message);
+        return;
+      }
+
+      setUser(user);
+      setCanEdit(user?.id === ADMIN_UID);
+    }
+    getUser();
+  }, []);
+
+  // 🔍 Busca os resultados da escola
   async function fetchResultados() {
     setLoading(true);
     const { data, error } = await supabase
@@ -34,124 +56,158 @@ export default function DetalhesEscola({ escola, onVoltar }) {
     setLoading(false);
   }
 
-  // Busca os dados quando o componente é carregado
   useEffect(() => {
     fetchResultados();
   }, [escola.id]);
 
-  // Função para adicionar um novo resultado
+  // ➕ Adicionar resultado (apenas admin)
   const handleAddResultado = async (e) => {
     e.preventDefault();
-    // --- 2. ATUALIZAR VALIDAÇÃO ---
+    if (!canEdit)
+      return alert("Apenas o administrador pode adicionar resultados.");
     if (!avaliacao || !ano || !serie || !valorIndice || !disciplina) {
       alert("Por favor, preencha todos os campos do resultado.");
       return;
     }
 
     setLoading(true);
-    // --- 3. ATUALIZAR INSERT ---
     const { error } = await supabase.from("resultados").insert({
       escola_id: escola.id,
-      avaliacao: avaliacao,
+      avaliacao,
       ano: parseInt(ano),
-      serie: serie,
+      serie,
       valor_indice: parseFloat(valorIndice),
-      disciplina: disciplina, // <-- CAMPO ADICIONADO
+      disciplina,
     });
 
     if (error) {
       alert("Erro ao salvar resultado: " + error.message);
     } else {
       alert("Resultado salvo com sucesso!");
-      // Limpa o formulário
       setAvaliacao("");
       setAno(new Date().getFullYear());
       setSerie("");
       setValorIndice("");
-      setDisciplina(""); // <-- 4. LIMPAR NOVO CAMPO
-      // Atualiza a lista de resultados
+      setDisciplina("");
       fetchResultados();
     }
     setLoading(false);
+  };
+
+  // ❌ Deletar resultado (apenas admin)
+  const handleDeleteResultado = async (resultadoId) => {
+    if (!canEdit)
+      return alert("Apenas o administrador pode deletar resultados.");
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("resultados")
+        .delete()
+        .eq("id", resultadoId);
+
+      if (error) throw error;
+
+      setResultados(resultados.filter((r) => r.id !== resultadoId));
+    } catch (error) {
+      alert("Erro ao deletar resultado: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <button onClick={onVoltar} className={styles.voltarButton}>
-          &larr; Voltar para a lista
+          &larr; Voltar
         </button>
         <h1>{escola.nome_escola}</h1>
         <small>INEP: {escola.codigo_inep}</small>
       </div>
 
-      {/* Usar o mesmo grid de 2 colunas do painel */}
       <div className={painelStyles.contentRow}>
-        {/* Card 1: Formulário para Adicionar Resultado */}
-        <form onSubmit={handleAddResultado} className={styles.cardForm}>
-          <h3>Adicionar Novo Resultado</h3>
-          <input
-            type="text"
-            placeholder="Nome da Avaliação (ex: SAEB, Prova Brasil)"
-            value={avaliacao}
-            onChange={(e) => setAvaliacao(e.target.value)}
-            className={styles.input}
-          />
-          {/* --- 5. ADICIONAR NOVO INPUT DE DISCIPLINA --- */}
-          <input
-            type="text"
-            placeholder="Disciplina (ex: Português, Matemática)"
-            value={disciplina}
-            onChange={(e) => setDisciplina(e.target.value)}
-            className={styles.input}
-          />
-          <input
-            type="number"
-            placeholder="Ano"
-            value={ano}
-            onChange={(e) => setAno(e.target.value)}
-            className={styles.input}
-          />
-          <input
-            type="text"
-            placeholder="Série (ex: 5º Ano, 9º Ano)"
-            value={serie}
-            onChange={(e) => setSerie(e.target.value)}
-            className={styles.input}
-          />
-          <input
-            type="number"
-            step="0.01" // Permite casas decimais
-            placeholder="Valor/Índice (ex: 5.75)"
-            value={valorIndice}
-            onChange={(e) => setValorIndice(e.target.value)}
-            className={styles.input}
-          />
-          <button type="submit" disabled={loading} className={styles.addButton}>
-            {loading ? "Salvando..." : "Adicionar Resultado"}
-          </button>
-        </form>
+        {/* ✅ Formulário aparece somente se for o admin */}
+        {canEdit && (
+          <form onSubmit={handleAddResultado} className={styles.cardForm}>
+            <h3>Adicionar Novo Resultado</h3>
+            <input
+              type="text"
+              placeholder="Nome da Avaliação (ex: SAEB, Prova Brasil)"
+              value={avaliacao}
+              onChange={(e) => setAvaliacao(e.target.value)}
+              className={styles.input}
+            />
+            <input
+              type="text"
+              placeholder="Disciplina (ex: Português, Matemática)"
+              value={disciplina}
+              onChange={(e) => setDisciplina(e.target.value)}
+              className={styles.input}
+            />
+            <input
+              type="number"
+              placeholder="Ano"
+              value={ano}
+              onChange={(e) => setAno(e.target.value)}
+              className={styles.input}
+            />
+            <input
+              type="text"
+              placeholder="Série (ex: 5º Ano, 9º Ano)"
+              value={serie}
+              onChange={(e) => setSerie(e.target.value)}
+              className={styles.input}
+            />
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Valor/Índice (ex: 5.75)"
+              value={valorIndice}
+              onChange={(e) => setValorIndice(e.target.value)}
+              className={styles.input}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles.addButton}
+            >
+              {loading ? "Salvando..." : "Adicionar Resultado"}
+            </button>
+          </form>
+        )}
 
-        {/* Card 2: Lista de Resultados Existentes */}
-        <div className={styles.cardList}>
+        {/* 📊 Lista de Resultados */}
+        <div className={canEdit ? styles.cardList : styles.cardListFullWidth}>
           <h3>Resultados Cadastrados</h3>
           {loading && <p>Carregando...</p>}
           <ul className={styles.list}>
             {resultados.length > 0
               ? resultados.map((r) => (
                   <li key={r.id} className={styles.listItem}>
-                    <span>
-                      {/* --- 6. ATUALIZAR EXIBIÇÃO DA LISTA --- */}
-                      <strong>
-                        {r.disciplina} - {r.avaliacao}
-                      </strong>
-                      <small>
-                        {r.ano} - {r.serie}
-                      </small>
-                    </span>
-                    <span className={styles.indiceValor}>
-                      {r.valor_indice ? r.valor_indice.toFixed(2) : "N/A"}
-                    </span>
+                    <div className={styles.resultadoInfo}>
+                      <span>
+                        <strong>
+                          {r.disciplina} - {r.avaliacao}
+                        </strong>
+                        <small>
+                          {r.ano} - {r.serie}
+                        </small>
+                      </span>
+                      <span className={styles.indiceValor}>
+                        {r.valor_indice ? r.valor_indice.toFixed(2) : "N/A"}
+                      </span>
+                    </div>
+
+                    {/* ❌ Botão Deletar só para admin */}
+                    {canEdit && (
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() => handleDeleteResultado(r.id)}
+                        disabled={loading}
+                      >
+                        Deletar
+                      </button>
+                    )}
                   </li>
                 ))
               : !loading && (
