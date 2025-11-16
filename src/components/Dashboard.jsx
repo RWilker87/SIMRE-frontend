@@ -80,7 +80,7 @@ export default function Dashboard({ session }) {
       <aside className={styles.sidebar}>
         <div>
           <div className={styles.logo}>
-            <span>S</span> SIMRE
+            <span>S</span> SIMREC
           </div>
           <nav className={styles.nav}>
             {/* Link comum para o Dashboard */}
