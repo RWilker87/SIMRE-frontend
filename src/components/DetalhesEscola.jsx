@@ -289,30 +289,52 @@ export default function DetalhesEscola({ escola, onVoltar }) {
   const grupos = useMemo(() => {
     const map = {};
     resultados.forEach((r) => {
+      // Normalização mais agressiva para garantir chaves idênticas.
       function normalizar(str) {
-        return String(str)
-          .trim()
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[º°]/g, "o")
-          .replace(/\s+/g, " ");
+        return (
+          String(str)
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+            .replace(/[º°]/g, "o") // Troca indicadores ordinais (5º -> 5o)
+            // NOVO: Remove TODOS os caracteres que não são letras ou números.
+            .replace(/[^a-z0-9]/g, "")
+        );
       }
 
-      const chave = `${normalizar(r.avaliacao)} - ${normalizar(
+      // A chave agora é gerada a partir da concatenação das strings canônicas.
+      const chave = `${normalizar(r.avaliacao)}-${normalizar(
         r.serie
-      )} - ${normalizar(r.disciplina)}`;
-      if (!map[chave]) map[chave] = [];
-      map[chave].push({
+      )}-${normalizar(r.disciplina)}`;
+
+      // Usa a chave canônica para agrupar
+      if (!map[chave]) {
+        map[chave] = {
+          dados: [],
+          // Usa os dados do primeiro item para gerar o título formatado.
+          tituloOriginal: `${r.avaliacao} - ${r.serie} - ${r.disciplina}`,
+        };
+      }
+
+      map[chave].dados.push({
         ...r,
         ano: Number(r.ano),
         valor_indice: Number(r.valor_indice ?? 0),
       });
     });
+
+    // Transforma o mapa em um array e ordena os dados de cada grupo
     Object.keys(map).forEach((k) => {
-      map[k].sort((a, b) => a.ano - b.ano);
+      map[k].dados.sort((a, b) => a.ano - b.ano);
     });
-    return map;
+
+    // Retorna a lista de grupos (agora um Array) para renderização
+    return Object.entries(map).map(([chave, grupo]) => ({
+      chave,
+      titulo: grupo.tituloOriginal, // Mantém o título original para exibição
+      dados: grupo.dados,
+    }));
   }, [resultados]);
 
   return (
@@ -328,10 +350,11 @@ export default function DetalhesEscola({ escola, onVoltar }) {
       <div className={styles.graficosContainer}>
         {loading ? (
           <p>Carregando gráficos...</p>
-        ) : Object.keys(grupos).length > 0 ? (
-          Object.entries(grupos).map(([chave, dados]) => {
-            const titulo = chave;
-            const dadosFormatados = dados.map((d) => ({
+        ) : grupos.length > 0 ? (
+          // CORREÇÃO: Itera diretamente sobre o array 'grupos'
+          grupos.map((grupo) => {
+            const titulo = grupo.titulo;
+            const dadosFormatados = grupo.dados.map((d) => ({
               ano: d.ano,
               valor_indice: d.valor_indice,
               avaliacao: d.avaliacao,
@@ -340,7 +363,7 @@ export default function DetalhesEscola({ escola, onVoltar }) {
             }));
             return (
               <GraficoDeBarras
-                key={chave}
+                key={grupo.chave}
                 titulo={titulo}
                 data={dadosFormatados}
               />
